@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using ContosoUniversity.DAL;
 using ContosoUniversity.Models;
 using ContosoUniversity.ViewModels;
-using System.Data.Entity.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace ContosoUniversity.Controllers
@@ -29,7 +28,7 @@ namespace ContosoUniversity.Controllers
 
             viewModel.Instructors = db.Instructors
                 .Include(i => i.OfficeAssignment)
-                .Include(i => i.Courses.Select(c => c.Department))
+                .Include(i => i.Courses).ThenInclude(c => c.Department)
                 .OrderBy(i => i.LastName);
 
             if (id != null)
@@ -175,7 +174,7 @@ namespace ContosoUniversity.Controllers
 
                     return RedirectToAction("Index");
                 }
-                catch (RetryLimitExceededException /* dex */)
+                catch (Exception /* dex */)
                 {
                     //Log the error (uncomment dex variable name and add a line here to write a log.
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using ContosoUniversity.DAL;
 using ContosoUniversity.Models;
-using System.Data.Entity.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace ContosoUniversity.Controllers
@@ -33,7 +32,6 @@ namespace ContosoUniversity.Controllers
                 .Where(c => !SelectedDepartment.HasValue || c.DepartmentID == departmentID)
                 .OrderBy(d => d.CourseID)
                 .Include(d => d.Department);
-            var sql = courses.ToString();
             return View(courses.ToList());
         }
 
@@ -72,7 +70,7 @@ namespace ContosoUniversity.Controllers
                     return RedirectToAction("Index");
                 }
             }
-            catch (RetryLimitExceededException /* dex */)
+            catch (DbUpdateException /* dex */)
             {
                 //Log the error (uncomment dex variable name and add a line here to write a log.)
                 ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
@@ -113,7 +111,7 @@ namespace ContosoUniversity.Controllers
 
                     return RedirectToAction("Index");
                 }
-                catch (RetryLimitExceededException /* dex */)
+                catch (DbUpdateException /* dex */)
                 {
                     //Log the error (uncomment dex variable name and add a line here to write a log.
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
@@ -168,7 +166,7 @@ namespace ContosoUniversity.Controllers
         {
             if (multiplier != null)
             {
-                ViewBag.RowsAffected = db.Database.ExecuteSqlCommand("UPDATE Course SET Credits = Credits * {0}", multiplier);
+                ViewBag.RowsAffected = db.Database.ExecuteSqlRaw("UPDATE Course SET Credits = Credits * {0}", multiplier);
             }
             return View();
         }

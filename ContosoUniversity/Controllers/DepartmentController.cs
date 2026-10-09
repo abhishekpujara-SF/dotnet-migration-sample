@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net;
 using ContosoUniversity.DAL;
 using ContosoUniversity.Models;
-using System.Data.Entity.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity.Controllers
 {
@@ -37,12 +36,9 @@ namespace ContosoUniversity.Controllers
                 return new BadRequestResult();
             }
 
-            // Commenting out original code to show how to use a raw SQL query.
-            //Department department = await db.Departments.FindAsync(id);
-
             // Create and execute raw SQL query.
-            string query = "SELECT * FROM Department WHERE DepartmentID = @p0";
-            Department department = await db.Departments.SqlQuery(query, id).SingleOrDefaultAsync();
+            string query = "SELECT * FROM Department WHERE DepartmentID = {0}";
+            Department department = await db.Departments.FromSqlRaw(query, id).SingleOrDefaultAsync();
 
             if (department == null)
             {
@@ -130,7 +126,7 @@ namespace ContosoUniversity.Controllers
                 {
                     var entry = ex.Entries.Single();
                     var clientValues = (Department)entry.Entity;
-                    var databaseEntry = entry.GetDatabaseValues();
+                    var databaseEntry = await entry.GetDatabaseValuesAsync();
                     if (databaseEntry == null)
                     {
                         ModelState.AddModelError(string.Empty,
@@ -160,7 +156,7 @@ namespace ContosoUniversity.Controllers
                         departmentToUpdate.RowVersion = databaseValues.RowVersion;
                     }
                 }
-                catch (RetryLimitExceededException /* dex */)
+                catch (DbUpdateException /* dex */)
                 {
                     //Log the error (uncomment dex variable name and add a line here to write a log.
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
@@ -215,9 +211,9 @@ namespace ContosoUniversity.Controllers
             {
                 return RedirectToAction("Delete", new { concurrencyError = true, id = department.DepartmentID });
             }
-            catch (DataException /* dex */)
+            catch (DbUpdateException /* dex */)
             {
-                //Log the error (uncomment dex variable name after DataException and add a line here to write a log.
+                //Log the error (uncomment dex variable name after DbUpdateException and add a line here to write a log.
                 ModelState.AddModelError(string.Empty, "Unable to delete. Try again, and if the problem persists contact your system administrator.");
                 return View(department);
             }

@@ -1,6 +1,5 @@
 ﻿using ContosoUniversity.Models;
-using System.Data.Entity;
-using System.Data.Entity.ModelConfiguration.Conventions;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity.DAL
 {
@@ -14,19 +13,20 @@ namespace ContosoUniversity.DAL
         public DbSet<OfficeAssignment> OfficeAssignments { get; set; }
         public DbSet<Person> People { get; set; }
 
-        public SchoolContext(string connectString) : base(connectString) {}
+        public SchoolContext(DbContextOptions<SchoolContext> options) : base(options) {}
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+            modelBuilder.Entity<Course>().ToTable("Course");
+            modelBuilder.Entity<Department>().ToTable("Department");
+            modelBuilder.Entity<Enrollment>().ToTable("Enrollment");
+            modelBuilder.Entity<OfficeAssignment>().ToTable("OfficeAssignment");
+            modelBuilder.Entity<Person>().ToTable("Person");
 
             modelBuilder.Entity<Course>()
-                .HasMany(c => c.Instructors).WithMany(i => i.Courses)
-                .Map(t => t.MapLeftKey("CourseID")
-                    .MapRightKey("InstructorID")
-                    .ToTable("CourseInstructor"));
-
-            modelBuilder.Entity<Department>().MapToStoredProcedures();
+                .HasMany(c => c.Instructors)
+                .WithMany(i => i.Courses)
+                .UsingEntity<System.Collections.Generic.Dictionary<string, object>>("CourseInstructor", j => j.HasOne<Instructor>().WithMany().HasForeignKey("InstructorID"), j => j.HasOne<Course>().WithMany().HasForeignKey("CourseID"), j => j.ToTable("CourseInstructor"));
         }
     }
 }

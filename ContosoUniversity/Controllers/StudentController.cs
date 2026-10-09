@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using ContosoUniversity.DAL;
 using ContosoUniversity.Models;
 using PagedList.Core;
-using System.Data.Entity.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace ContosoUniversity.Controllers
@@ -106,7 +105,7 @@ namespace ContosoUniversity.Controllers
                     return RedirectToAction("Index");
                 }
             }
-            catch (RetryLimitExceededException /* dex */)
+            catch (Exception /* dex */)
             {
                 //Log the error (uncomment dex variable name and add a line here to write a log.
                 ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
@@ -150,7 +149,7 @@ namespace ContosoUniversity.Controllers
 
                     return RedirectToAction("Index");
                 }
-                catch (RetryLimitExceededException /* dex */)
+                catch (Exception /* dex */)
                 {
                     //Log the error (uncomment dex variable name and add a line here to write a log.
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
@@ -189,7 +188,7 @@ namespace ContosoUniversity.Controllers
                 db.Students.Remove(student);
                 db.SaveChanges();
             }
-            catch (RetryLimitExceededException/* dex */)
+            catch (Exception/* dex */)
             {
                 //Log the error (uncomment dex variable name and add a line here to write a log.
                 return RedirectToAction("Delete", new { id = id, saveChangesError = true });

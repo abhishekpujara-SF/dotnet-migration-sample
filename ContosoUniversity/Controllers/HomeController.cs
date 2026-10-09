@@ -4,6 +4,7 @@ using System.Linq;
 using ContosoUniversity.DAL;
 using ContosoUniversity.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity.Controllers
 {
@@ -37,7 +38,7 @@ namespace ContosoUniversity.Controllers
                 + "FROM Person "
                 + "WHERE Discriminator = 'Student' "
                 + "GROUP BY EnrollmentDate";
-            IEnumerable<EnrollmentDateGroup> data = db.Database.SqlQuery<EnrollmentDateGroup>(query);
+            IEnumerable<EnrollmentDateGroup> data = db.Database.SqlQueryRaw<EnrollmentDateGroup>(query);
 
             return View(data.ToList());
         }
